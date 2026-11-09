@@ -198,37 +198,35 @@ The repository includes JUnit and AndroidX test dependencies. Run the available 
 
 The connected test task requires a running emulator or connected test device. Add project-specific test cases as the conversation and database features evolve.
 
-## Screenshots and demo
-
 ## Screenshots and Demo
 
-The following screenshots demonstrate the main income certificate preparation workflow.
+The following screenshots demonstrate the main income certificate preparation workflow in AI Service Guide.
 
 <table>
   <tr>
     <td align="center">
       <strong>Service Selection</strong><br/>
-      <img src="docs/screenshots/home-screen.png" width="240"/>
+      <img src="docs/screenshots/home-screen.png" width="220"/>
     </td>
     <td align="center">
-      <strong>Required Documents</strong><br/>
-      <img src="docs/screenshots/required-documents.png" width="240"/>
+      <strong>Chat Interface</strong><br/>
+      <img src="docs/screenshots/chat-interface.png" width="220"/>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <strong>Readiness Summary</strong><br/>
-      <img src="docs/screenshots/readiness-summary.png" width="240"/>
+      <strong>Required Documents</strong><br/>
+      <img src="docs/screenshots/required-documents.png" width="220"/>
     </td>
     <td align="center">
-      <strong>Pre-Visit Checklist</strong><br/>
-      <img src="docs/screenshots/pre-visit-checklist.png" width="240"/>
+      <strong>Service Guidance</strong><br/>
+      <img src="docs/screenshots/service-guidance.png" width="220"/>
     </td>
   </tr>
   <tr>
     <td align="center" colspan="2">
-      <strong>Official Source and Helpline</strong><br/>
-      <img src="docs/screenshots/official-source.png" width="240"/>
+      <strong>Application Procedure</strong><br/>
+      <img src="docs/screenshots/Procedure.png" width="220"/>
     </td>
   </tr>
 </table>
