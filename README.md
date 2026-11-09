@@ -200,7 +200,40 @@ The connected test task requires a running emulator or connected test device. Ad
 
 ## Screenshots and demo
 
-Capture real screenshots from the running application and add them under `docs/screenshots/`. See [the screenshot capture checklist](docs/SCREENSHOTS.md) for recommended views and filenames. Do not use mockups as evidence of implemented functionality.
+## Screenshots and Demo
+
+The following screenshots demonstrate the main income certificate preparation workflow.
+
+<table>
+  <tr>
+    <td align="center">
+      <strong>Service Selection</strong><br/>
+      <img src="docs/screenshots/home-screen.png" width="240"/>
+    </td>
+    <td align="center">
+      <strong>Required Documents</strong><br/>
+      <img src="docs/screenshots/required-documents.png" width="240"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <strong>Readiness Summary</strong><br/>
+      <img src="docs/screenshots/readiness-summary.png" width="240"/>
+    </td>
+    <td align="center">
+      <strong>Pre-Visit Checklist</strong><br/>
+      <img src="docs/screenshots/pre-visit-checklist.png" width="240"/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <strong>Official Source and Helpline</strong><br/>
+      <img src="docs/screenshots/official-source.png" width="240"/>
+    </td>
+  </tr>
+</table>
+
+See [Screenshot Documentation](docs/SCREENSHOTS.md) for more details.
 
 ## Security and responsible use
 
