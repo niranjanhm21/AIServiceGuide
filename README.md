@@ -1,1290 +1,228 @@
 # AI Service Guide
 
-An Android-based citizen service assistance application that helps users understand government/public-service procedures, required documents, missing documents, document alternatives, where to obtain documents, and related service guidance **before visiting an office**.
+An Android-based citizen-service assistance application that helps people understand public-service procedures and prepare the documents they may need before visiting an office.
 
-The application combines a verified local database with Gemini-powered natural-language understanding. Gemini is used to understand the citizen's message and conversation context, while the local Room database remains the source of truth for service and document information.
+The app combines Gemini-powered natural-language intent understanding with a local Room database that stores the service and document information used to prepare guidance.
 
----
+> **Design principle:** AI interprets the request; the application's local data is the source used for service and document facts.
 
-## Table of Contents
+## Project at a glance
 
-- [Project Overview](#project-overview)
-- [Problem Statement](#problem-statement)
-- [Objectives](#objectives)
-- [Key Features](#key-features)
-- [How the Application Works](#how-the-application-works)
-- [Technology Stack](#technology-stack)
-- [Application Architecture](#application-architecture)
-- [Major Components](#major-components)
-- [Conversation and AI Flow](#conversation-and-ai-flow)
-- [Supported Interaction Types](#supported-interaction-types)
-- [Multilingual Support](#multilingual-support)
-- [Database Design](#database-design)
-- [Project Structure](#project-structure)
-- [Requirements](#requirements)
-- [Setup and Installation](#setup-and-installation)
-- [Gemini API Configuration](#gemini-api-configuration)
-- [Running the Application](#running-the-application)
-- [Testing](#testing)
-- [Git and GitHub](#git-and-github)
-- [Security](#security)
-- [Future Enhancements](#future-enhancements)
-- [Academic Project Information](#academic-project-information)
-- [License](#license)
+- **Platform:** Android
+- **Language:** Kotlin
+- **UI:** Jetpack Compose
+- **Local data:** Room
+- **AI integration:** Gemini API
+- **Interaction:** Text and voice input
+- **Languages:** English, Kannada, and Kannada-English mixed input
 
----
+## Problem
 
-## Project Overview
+People may make repeated visits to public-service offices because they are unsure which documents are required, how to apply, where to obtain a missing document, or what to do when an application encounters a problem.
 
-**AI Service Guide** is an Android application designed to reduce confusion and unnecessary visits to government/public-service offices.
+AI Service Guide aims to make this preparation easier through a conversational interface and locally stored service information.
 
-A citizen can describe what they want in natural language, for example:
+## Features
 
-> "I need an income certificate."
+- Natural-language service identification.
+- Guidance about required documents and application procedures.
+- Missing-document follow-up guidance.
+- Context-aware follow-up questions.
+- Preparation checklist.
+- English, Kannada, and Kannada-English mixed-language input.
+- Voice input.
+- Local database-backed service and document information.
 
-The application identifies the service and can then guide the user through:
+The information available to a user depends on the service records included in the application's database. The app should not be treated as an official government portal or as a substitute for checking the relevant department's current requirements.
 
-- Required documents
-- Application procedure
-- Checklist preparation
-- Missing documents
-- How to obtain a missing document
-- Where to obtain a document
-- Office/service information
-- Application-related problems
-- Starting another service
-- Contextual follow-up questions
+## Example interaction
 
-The application is designed around a **database-first approach**:
+1. A user asks: `I need an income certificate.`
+2. The app interprets the request and identifies the relevant service.
+3. The user asks which documents are required.
+4. The app retrieves the corresponding information from its local database.
+5. The user can ask follow-up questions about a missing document or request a checklist.
 
-> **AI understands the citizen. The verified application database provides the factual service information.**
+Kannada and mixed-language examples are included in the application's manual test scenarios.
 
----
+## Architecture
 
-## Problem Statement
-
-Citizens often need to visit government offices multiple times because they may not know:
-
-- Which documents are required
-- Whether a particular document is mandatory
-- What to do when a document is missing
-- Where a document can be obtained
-- Which office or department handles a service
-- What preparation is required before visiting
-- How to continue when they have a problem during an application
-
-This project provides a conversational interface that helps users prepare before visiting the relevant service office.
-
----
-
-## Objectives
-
-1. Provide a simple conversational interface for citizen services.
-2. Understand natural-language requests instead of requiring fixed commands.
-3. Support English, Kannada, and Kannada-English mixed communication.
-4. Use a verified local database for service/document information.
-5. Maintain conversation context for follow-up questions.
-6. Help users identify missing documents.
-7. Provide contextual guidance for obtaining missing documents.
-8. Generate a practical checklist before the user visits an office.
-9. Reduce unnecessary confusion and repeated visits.
-10. Provide a scalable architecture for adding additional services.
-
----
-
-## Key Features
-
-### 1. Natural-Language Service Identification
-
-Users can describe their requirement naturally.
-
-Example:
-
-```text
-I need an income certificate.
+```mermaid
+flowchart TD
+    U[Citizen] --> UI[Android UI<br/>Jetpack Compose]
+    UI --> SA[ServiceAssistant<br/>Conversation state and workflow]
+    SA --> IA[GeminiIntentAnalyzer<br/>Natural-language intent extraction]
+    IA --> IR[Structured intent and entities]
+    IR --> SA
+    SA --> DB[Room database<br/>Services, documents, procedures]
+    DB --> SA
+    SA --> R[Context-aware guidance and checklist]
+    R --> UI
 ```
 
-The AI identifies the relevant service from the services available in the application database.
+### Main components
 
----
-
-### 2. Document Requirement Guidance
-
-Users can ask:
-
-```text
-What documents are required?
-```
-
-or in Kannada:
-
-```text
-ಅಗತ್ಯ ದಾಖಲೆಗಳು ಯಾವುವು?
-```
-
-The application retrieves the relevant information from the local database.
-
----
-
-### 3. Missing Document Assistance
-
-Example:
-
-```text
-I don't have address proof.
-```
-
-The application can identify the missing document and guide the user through the next available steps.
-
----
-
-### 4. Document Follow-Up Questions
-
-The conversation supports contextual questions such as:
-
-```text
-How do I obtain it?
-```
-
-```text
-Where can I get it?
-```
-
-```text
-Can I use another document?
-```
-
-The user does not always need to repeat the document or service name.
-
----
-
-### 5. Application Procedure
-
-Users can ask:
-
-```text
-How do I apply?
-```
-
-or:
-
-```text
-ಅರ್ಜಿ ಹೇಗೆ ಸಲ್ಲಿಸಬೇಕು?
-```
-
-The application identifies the requested action and uses verified application data.
-
----
-
-### 6. Checklist
-
-The application can guide the citizen toward a final preparation checklist.
-
-Example:
-
-```text
-Show my checklist.
-```
-
-or:
-
-```text
-ಚೆಕ್ ಲಿಸ್ಟ್ ತೋರಿಸಿ
-```
-
----
-
-### 7. Context-Aware Conversation
-
-The application maintains conversation state.
-
-For example:
-
-```text
-User:
-I need an income certificate.
-
-Assistant:
-Income Certificate selected.
-
-User:
-What documents are required?
-
-Assistant:
-[requirements]
-
-User:
-I don't have address proof.
-
-Assistant:
-[missing document guidance]
-
-User:
-How do I get it?
-
-Assistant:
-[contextual guidance for address proof]
-```
-
-The final question is interpreted using the existing conversation context.
-
----
-
-### 8. Kannada Support
-
-The application supports Kannada-script requests such as:
-
-```text
-ಅಗತ್ಯ ದಾಖಲೆಗಳು ಯಾವುವು
-```
-
-```text
-ಅರ್ಜಿ ಹೇಗೆ ಸಲ್ಲಿಸಬೇಕು
-```
-
-```text
-ನನ್ನ ಬಳಿ ವಿಳಾಸದ ಪುರಾವೆ ಇಲ್ಲ
-```
-
-```text
-ಇದನ್ನು ಹೇಗೆ ಪಡೆಯುವುದು
-```
-
-```text
-ಇದು ಎಲ್ಲಿ ಸಿಗುತ್ತದೆ
-```
-
----
-
-### 9. Kannada-English Mixed Language
-
-The application is designed to handle natural mixed-language input where users combine Kannada and English terms.
-
-Example:
-
-```text
-income certificate ಗೆ ಯಾವ documents ಬೇಕು?
-```
-
----
-
-### 10. Voice Input
-
-The application supports voice-based interaction so users can communicate without always typing their requests.
-
----
-
-## How the Application Works
-
-The high-level flow is:
-
-```text
-                 ┌─────────────────────┐
-                 │       Citizen       │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │ Android Chat UI     │
-                 │ Jetpack Compose     │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │ ServiceAssistant    │
-                 │ Conversation Logic  │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │ Gemini Intent       │
-                 │ Analyzer            │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │ Intent / Action     │
-                 │ + Context           │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │ Room Database       │
-                 │ Source of Truth     │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │ Verified Citizen    │
-                 │ Guidance            │
-                 └─────────────────────┘
-```
-
----
-
-## Technology Stack
-
-| Technology | Purpose |
+| Component | Responsibility |
 |---|---|
-| Kotlin | Primary programming language |
-| Android Studio | Development environment |
-| Jetpack Compose | Modern Android UI |
-| Room | Local database |
-| Gemini API | Natural-language understanding |
+| `MainActivity.kt` | Main Android interface and interaction entry point |
+| `ServiceAssistant.kt` | Conversation workflow, state, service/document actions, and follow-ups |
+| `ConversationModels.kt` | Shared conversation models and result/state types |
+| `GeminiIntentAnalyzer.kt` | Converts natural-language messages into structured intent information |
+| Room entities and DAOs | Represent and retrieve service, document, relationship, problem, and procedure data |
+| `DatabaseSeeder.kt` | Supplies initial local service/document records |
+
+### Data relationship (conceptual)
+
+```mermaid
+erDiagram
+    SERVICE ||--o{ SERVICE_DOCUMENT : has
+    DOCUMENT ||--o{ SERVICE_DOCUMENT : linked_through
+    SERVICE ||--o{ SERVICE_PROCEDURE : has
+    SERVICE ||--o{ PROBLEM : may_have
+```
+
+This is a conceptual view of the relationships described by the project. Refer to the Room entity definitions for the exact implemented schema.
+
+## Technology stack
+
+| Technology | Role |
+|---|---|
+| Kotlin | Application language |
+| Jetpack Compose | Android UI |
+| Room | Local structured database |
+| Gemini API | Natural-language intent understanding |
 | Kotlin Coroutines | Asynchronous operations |
-| Android Voice Input | Voice interaction |
 | Gradle Kotlin DSL | Build configuration |
-| Git | Version control |
-| GitHub | Remote source-code repository |
-| Pixel 9 Emulator | Development/testing device |
-
----
-
-## Application Architecture
-
-The project follows a layered approach.
-
-### Presentation Layer
-
-Responsible for:
-
-- Chat interface
-- User messages
-- Assistant messages
-- Suggested actions
-- Voice input
-- Conversation display
-- Service selection
-- Checklist display
-
-Main UI entry point:
-
-```text
-MainActivity.kt
-```
-
----
-
-### Conversation / Business Logic Layer
-
-The main conversation controller is:
-
-```text
-ServiceAssistant.kt
-```
-
-Responsibilities include:
-
-- Processing user messages
-- Maintaining conversation state
-- Handling service selection
-- Handling document checks
-- Handling missing documents
-- Handling contextual follow-ups
-- Managing conversation tasks
-- Connecting AI understanding with verified database data
-
----
-
-### AI Understanding Layer
-
-The AI natural-language understanding component is:
-
-```text
-GeminiIntentAnalyzer.kt
-```
-
-Gemini is used to extract information such as:
-
-- Service
-- Intent
-- Document
-- Problem
-- Desired action
-- Confidence
-
-The AI is explicitly separated from factual government-service data.
-
----
-
-### Data Layer
-
-The Room database contains service and document information.
-
-Important components include:
-
-```text
-AppDatabase
-DatabaseProvider
-DatabaseSeeder
-Service
-ServiceDao
-Document
-DocumentDao
-ServiceDocument
-ServiceDocumentDao
-Problem
-ProblemDao
-ServiceProcedure
-```
-
----
-
-## Major Components
-
-### `MainActivity.kt`
-
-Provides the main Android user interface and connects the UI with the service assistant.
-
----
-
-### `ServiceAssistant.kt`
-
-Controls the application's conversational workflow.
-
-The application uses conversation tasks such as:
-
-```text
-CHOOSE_SERVICE
-SERVICE_ACTIONS
-PROBLEM_SELECTION
-CHECK_DOCUMENT
-DEATH_CONTEXT
-MISSING_DOCUMENT
-FINISHED
-```
-
----
-
-### `ConversationModels.kt`
-
-Contains shared conversation models, including:
-
-```text
-ChatMessage
-ConversationTask
-ConversationState
-AssistantResult
-```
-
-Keeping these models separate prevents duplicate class definitions between `MainActivity.kt` and `ServiceAssistant.kt`.
-
----
-
-### `GeminiIntentAnalyzer.kt`
-
-Converts natural-language messages into structured intent information.
-
-The analyzer supports intents including:
-
-```text
-IDENTIFY_SERVICE
-APPLICATION_PROCEDURE
-DOCUMENT_REQUIREMENT
-MISSING_DOCUMENT
-DOCUMENT_ALTERNATIVE
-HOW_TO_OBTAIN_DOCUMENT
-WHERE_TO_OBTAIN_DOCUMENT
-OFFICE_LOCATION
-DEPARTMENT
-APPLICATION_PROBLEM
-REJECTION
-STATUS
-CHECKLIST
-START_ANOTHER_SERVICE
-GENERAL_HELP
-```
-
----
-
-### `ServiceProcedure.kt`
-
-Stores/represents service procedure information used by the application.
-
----
-
-### `DatabaseSeeder.kt`
-
-Provides initial service/document data for the local Room database.
-
----
-
-## Conversation and AI Flow
-
-The application follows this principle:
-
-```text
-User Message
-     ↓
-Understand Intent
-     ↓
-Resolve Current Conversation Context
-     ↓
-Identify Service / Document / Action
-     ↓
-Verify Against Room Database
-     ↓
-Generate Response
-```
-
-Gemini is **not** treated as the authoritative source for government requirements.
-
-The application uses the database to determine what information can actually be shown to the citizen.
-
----
-
-## Supported Interaction Types
-
-The application can handle interactions such as:
-
-### Service Identification
-
-```text
-I need a caste certificate.
-```
-
-### Requirements
-
-```text
-What documents do I need?
-```
-
-### Application Procedure
-
-```text
-How do I apply?
-```
-
-### Missing Document
-
-```text
-I don't have address proof.
-```
-
-### How to Obtain
-
-```text
-How do I get it?
-```
-
-### Where to Obtain
-
-```text
-Where can I get it?
-```
-
-### Alternative Document
-
-```text
-Can I use another document?
-```
-
-### Checklist
-
-```text
-Show my checklist.
-```
-
-### Problem
-
-```text
-My application was rejected.
-```
-
-### Another Service
-
-```text
-I want to apply for another service.
-```
-
----
-
-## Multilingual Support
-
-The application is designed for:
-
-- English
-- Kannada
-- Kannada-English mixed language
-
-The response language can follow the language used by the citizen.
-
-Example:
-
-```text
-User:
-ಅಗತ್ಯ ದಾಖಲೆಗಳು ಯಾವುವು?
-
-Assistant:
-[Kannada response]
-```
-
-Mixed-language example:
-
-```text
-User:
-income certificate ಗೆ ಯಾವ documents ಬೇಕು?
-
-Assistant:
-[Context-aware response]
-```
-
----
-
-## Database Design
-
-The application uses Room for local structured data.
-
-The main relationships conceptually follow:
-
-```text
-Service
-   │
-   ├───────────────┐
-   │               │
-   ▼               ▼
-Documents       Procedures
-   │
-   ▼
-ServiceDocument
-```
-
-Additional service-related information can be represented through problem records and related DAOs.
-
-### Database-first principle
-
-The database is responsible for factual application information such as:
-
-- Available services
-- Documents
-- Service-document relationships
-- Procedures
-- Problems and related guidance
-
-The AI layer interprets the citizen's request and maps it to this information.
-
----
-
-## Project Structure
-
-A simplified project structure is:
-
-```text
-AIServiceGuide/
-│
-├── app/
-│   ├── src/
-│   │   └── main/
-│   │       ├── java/
-│   │       │   └── com/
-│   │       │       └── example/
-│   │       │           └── aiserviceguide/
-│   │       │               │
-│   │       │               ├── ai/
-│   │       │               │   └── GeminiIntentAnalyzer.kt
-│   │       │               │
-│   │       │               ├── data/
-│   │       │               │   ├── AppDatabase.kt
-│   │       │               │   ├── ConversationModels.kt
-│   │       │               │   ├── DatabaseProvider.kt
-│   │       │               │   ├── DatabaseSeeder.kt
-│   │       │               │   ├── Document.kt
-│   │       │               │   ├── DocumentDao.kt
-│   │       │               │   ├── Problem.kt
-│   │       │               │   ├── ProblemDao.kt
-│   │       │               │   ├── Service.kt
-│   │       │               │   ├── ServiceAssistant.kt
-│   │       │               │   ├── ServiceDao.kt
-│   │       │               │   ├── ServiceDocument.kt
-│   │       │               │   ├── ServiceDocumentDao.kt
-│   │       │               │   └── ServiceProcedure.kt
-│   │       │               │
-│   │       │               └── MainActivity.kt
-│   │       │
-│   │       └── res/
-│   │
-│   ├── build.gradle.kts
-│   └── ...
-│
-├── build.gradle.kts
-├── settings.gradle.kts
-├── gradle.properties
-├── gradlew
-├── gradlew.bat
-└── README.md
-```
-
-The exact project tree may contain additional Android Studio-generated files and resources.
-
----
+| Android voice input | Voice interaction |
+| Git and GitHub | Version control and source hosting |
 
 ## Requirements
 
-To build the project locally, you need:
+- Android Studio with support for the Android Gradle Plugin version configured in this repository.
+- Android SDK Platform 37 (the project uses compile SDK 37).
+- Android device or emulator running Android 8.1 / API 27 or later (the configured minimum SDK is 27).
+- JDK compatible with the configured Gradle 9.5 wrapper and Android Gradle Plugin.
+- Internet access to download dependencies and use Gemini-powered intent understanding.
+- A Gemini API key for AI-assisted functionality.
 
-- Android Studio
-- Android SDK
-- Kotlin support through Android Studio
-- Gradle/Gradle Wrapper
-- An Android emulator or physical Android device
-- Internet access for dependency/API operations
-- A valid Gemini API configuration for AI functionality
+The repository includes the Gradle Wrapper. Use `gradlew.bat` on Windows or `./gradlew` on macOS/Linux rather than installing a separate Gradle distribution.
 
----
-
-## Setup and Installation
+## Setup and run
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/AIServiceGuide.git
-```
-
-Then:
-
-```bash
+git clone https://github.com/niranjanhm21/AIServiceGuide.git
 cd AIServiceGuide
 ```
 
-### 2. Open the project
+### 2. Open and sync
 
-Open the project in Android Studio.
+1. Open the cloned folder in Android Studio.
+2. Allow the IDE to sync the Gradle project and download dependencies.
+3. Install Android SDK Platform 37 if Android Studio prompts for it.
+4. Select an emulator or connect an Android device with USB debugging enabled.
 
-Allow Android Studio/Gradle to synchronize the project.
+### 3. Configure Gemini
 
-### 3. Configure the Gemini API key
+The app module reads a `GEMINI_API_KEY` property from the root-level `local.properties` file and places it in generated BuildConfig.
 
-Configure the API key using your project's existing secret/BuildConfig mechanism.
+Add this line to the root-level `local.properties` file on your machine:
 
-**Do not place a real API key directly inside a committed Kotlin source file.**
-
-### 4. Sync Gradle
-
-In Android Studio:
-
-```text
-File → Sync Project with Gradle Files
+```properties
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 ```
 
-### 5. Build
+If the file already contains an Android SDK path, keep that line and add the key on a separate line. Do not replace the existing SDK configuration.
 
-Use:
+The repository's `.gitignore` excludes `local.properties`. Never commit a real API key, token, password, signing key, or other secret.
 
-```text
-Build → Make Project
+**Security note:** A key compiled into an Android application can be extracted from the distributed APK. Local properties prevent accidental source-control commits; they do not make a client-side key secret from app users. For a production release, put Gemini access behind a trusted backend and apply appropriate API restrictions, quotas, and monitoring.
+
+### 4. Build
+
+On Windows:
+
+```powershell
+.\gradlew.bat assembleDebug
 ```
 
-or:
+On macOS/Linux:
 
-```text
-Build → Rebuild Project
+```bash
+./gradlew assembleDebug
 ```
 
-### 6. Run
+You can also use **Build → Make Project** in Android Studio.
 
-Select an emulator/device and run:
+### 5. Run
 
-```text
-Run → Run 'app'
-```
-
----
-
-## Gemini API Configuration
-
-The application uses Gemini for natural-language understanding.
-
-The intended responsibility of Gemini is:
+Choose an emulator or connected device and press **Run** in Android Studio. The debug APK is normally generated under:
 
 ```text
-Natural-language message
-        ↓
-Intent understanding
-        ↓
-Structured result
-        ↓
-Room database verification
-        ↓
-Citizen response
+app/build/outputs/apk/debug/
 ```
 
-Gemini should not be used as an unrestricted source of government requirements.
+## Try the app
 
-### Important security rule
+Use these as manual test prompts, depending on the service records available in the local database:
 
-Never commit:
+**English**
+- `I need an income certificate.`
+- `What documents are required?`
+- `How do I apply?`
+- `I don't have address proof.`
+- `How do I get it?`
+- `Show my checklist.`
 
-```text
-API keys
-Passwords
-Access tokens
-Private credentials
-Keystore passwords
-```
+**Kannada**
+- `ಆದಾಯ ಪ್ರಮಾಣ ಪತ್ರ ಬೇಕು`
+- `ಅಗತ್ಯ ದಾಖಲೆಗಳು ಯಾವುವು?`
+- `ಅರ್ಜಿ ಹೇಗೆ ಸಲ್ಲಿಸಬೇಕು?`
+- `ನನ್ನ ಬಳಿ ವಿಳಾಸದ ಪುರಾವೆ ಇಲ್ಲ`
 
-to GitHub.
+**Kannada-English mixed**
+- `income certificate ಗೆ ಯಾವ documents ಬೇಕು?`
+- `address proof ಇಲ್ಲ, ಏನು ಮಾಡಬೇಕು?`
 
-GitHub explicitly recommends not pushing API keys or other sensitive credentials to repositories. Use ignored local configuration or an appropriate secret-management mechanism instead.
-
----
-
-## Running the Application
-
-After configuration:
-
-1. Start the Android emulator or connect a device.
-2. Build the project.
-3. Run the application.
-4. Open the chat interface.
-5. Try a service request.
-6. Continue with document/procedure questions.
-7. Test Kannada and mixed-language messages.
-8. Test missing-document follow-ups.
-9. Test voice input.
-
----
+These are suggested manual checks, not a claim that every phrasing or service has been formally validated.
 
 ## Testing
 
-Suggested test cases:
+The repository includes JUnit and AndroidX test dependencies. Run the available test tasks from the project root:
 
-### English
-
-```text
-I need an income certificate.
+```powershell
+.\gradlew.bat test
+.\gradlew.bat connectedAndroidTest
 ```
 
-```text
-What documents are required?
-```
+The connected test task requires a running emulator or connected test device. Add project-specific test cases as the conversation and database features evolve.
 
-```text
-How do I apply?
-```
+## Screenshots and demo
 
-```text
-I don't have address proof.
-```
+Capture real screenshots from the running application and add them under `docs/screenshots/`. See [the screenshot capture checklist](docs/SCREENSHOTS.md) for recommended views and filenames. Do not use mockups as evidence of implemented functionality.
 
-```text
-How do I get it?
-```
+## Security and responsible use
 
-```text
-Where can I get it?
-```
+- Keep API keys and other credentials out of source control.
+- The local Room database is the source used for service/document facts; Gemini is used for language understanding.
+- Verify service requirements with the relevant official department because public-service rules can change.
+- Do not present the app as an official government service unless an authorized integration exists.
+- Before public distribution, review API-key handling, privacy, voice-input permissions, data retention, and applicable platform requirements.
 
----
+## Current status and limitations
 
-### Kannada
+The app depends on the service and document records packaged in its local database. The completeness and currency of those records determine the breadth of guidance it can provide. A production deployment would require stronger backend-based secret handling, maintained official data sources, and broader device/language testing.
 
-```text
-ಆದಾಯ ಪ್ರಮಾಣ ಪತ್ರ ಬೇಕು
-```
+## Future improvements
 
-```text
-ಅಗತ್ಯ ದಾಖಲೆಗಳು ಯಾವುವು?
-```
-
-```text
-ಅರ್ಜಿ ಹೇಗೆ ಸಲ್ಲಿಸಬೇಕು?
-```
-
-```text
-ನನ್ನ ಬಳಿ ವಿಳಾಸದ ಪುರಾವೆ ಇಲ್ಲ
-```
-
-```text
-ಇದನ್ನು ಹೇಗೆ ಪಡೆಯುವುದು?
-```
-
-```text
-ಇದು ಎಲ್ಲಿ ಸಿಗುತ್ತದೆ?
-```
-
-```text
-ಚೆಕ್ ಲಿಸ್ಟ್ ತೋರಿಸಿ
-```
-
----
-
-### Mixed Language
-
-```text
-income certificate ಗೆ ಯಾವ documents ಬೇಕು?
-```
-
-```text
-address proof ಇಲ್ಲ, ಏನು ಮಾಡಬೇಕು?
-```
-
----
-
-## Git and GitHub
-
-The project uses Git for local version control and GitHub for remote source-code storage.
-
-### Check whether Git is already initialized
-
-Open a terminal in the project root:
-
-```bash
-git status
-```
-
-If Git is already configured, you should see the current branch and changed files.
-
-You can also check:
-
-```bash
-git remote -v
-```
-
-If an `origin` URL is already shown, the project is already connected to a GitHub remote.
-
----
-
-### First-time Git setup
-
-If the project has never been initialized as a Git repository:
-
-```bash
-git init -b main
-```
-
-Then:
-
-```bash
-git add .
-```
-
-Commit:
-
-```bash
-git commit -m "Initial commit"
-```
-
-GitHub's documented workflow for an existing local project is to initialize Git if needed, commit the project, add the GitHub remote, and push the branch. 
-
----
-
-### Create the GitHub repository
-
-On GitHub:
-
-1. Create a new repository.
-2. Give it a name such as:
-
-```text
-AIServiceGuide
-```
-
-3. Choose Public or Private.
-4. If the project already contains its own local history, do **not** initialize the new GitHub repository with another README, license, or `.gitignore`.
-5. Create the repository.
-
-GitHub provides the repository's remote URL after creation. 
-
----
-
-### Connect your local project to GitHub
-
-Copy your repository URL and run:
-
-```bash
-git remote add origin https://github.com/YOUR_USERNAME/AIServiceGuide.git
-```
-
-Verify:
-
-```bash
-git remote -v
-```
-
-You should see:
-
-```text
-origin  https://github.com/YOUR_USERNAME/AIServiceGuide.git (fetch)
-origin  https://github.com/YOUR_USERNAME/AIServiceGuide.git (push)
-```
-
-Then push:
-
-```bash
-git push -u origin main
-```
-
-This is the standard GitHub workflow for pushing an existing local repository. 
-
----
-
-## Updating GitHub After Future Changes
-
-Whenever you modify the project:
-
-### 1. Check changes
-
-```bash
-git status
-```
-
-### 2. Review changes
-
-```bash
-git diff
-```
-
-### 3. Stage changes
-
-```bash
-git add .
-```
-
-### 4. Commit
-
-Use a meaningful message:
-
-```bash
-git commit -m "Improve Kannada conversation handling"
-```
-
-### 5. Push
-
-```bash
-git push
-```
-
-Your changes will then be uploaded to the GitHub repository.
-
----
-
-## Useful Git Commands
-
-### Check status
-
-```bash
-git status
-```
-
-### View commit history
-
-```bash
-git log --oneline
-```
-
-### Check remote repository
-
-```bash
-git remote -v
-```
-
-### Download latest remote changes
-
-```bash
-git pull
-```
-
-### Push local commits
-
-```bash
-git push
-```
-
-### Create a new branch
-
-```bash
-git checkout -b feature-name
-```
-
-### Return to main
-
-```bash
-git checkout main
-```
-
----
-
-## `.gitignore`
-
-Android Studio projects should not commit generated/build files or local machine-specific configuration.
-
-A suitable Android `.gitignore` should normally exclude items such as:
-
-```gitignore
-# Gradle
-.gradle/
-build/
-**/build/
-
-# Android Studio
-.idea/
-*.iml
-
-# Local configuration
-local.properties
-
-# Generated files
-captures/
-.externalNativeBuild/
-.cxx/
-
-# APKs
-*.apk
-*.aab
-
-# Logs
-*.log
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Secrets
-*.env
-secrets.properties
-```
-
-Do not blindly add a file to `.gitignore` if your project intentionally needs it. Review the files before the first push.
-
-GitHub recommends using `.gitignore` to prevent files that should not be committed from being added to the repository. citeturn0search1
-
----
-
-## Security
-
-### Never upload the Gemini API key
-
-Before pushing:
-
-```bash
-git status
-```
-
-and inspect staged files.
-
-Also search your project for:
-
-```text
-AIza
-GEMINI_API_KEY
-API_KEY
-password
-secret
-token
-```
-
-A real credential should not appear in the GitHub repository.
-
-GitHub specifically warns against committing API keys, tokens, passwords, and other credentials—even to private repositories. citeturn0search0turn0search15
-
-If a secret has already been committed, simply deleting it in a later commit does not make the old secret safe; the credential should be rotated and the repository history handled appropriately.
-
----
-
-## Future Enhancements
-
-Potential future improvements include:
-
-- More government services
-- More document types
-- More regional languages
-- Better voice interaction
-- Offline-first improvements
-- More detailed application-status guidance
-- Government-service API integration where officially available
-- Accessibility improvements
-- Improved service search
-- More advanced conversation analytics
-- Administrative tools for maintaining verified service data
-- Better multilingual response generation
-- Unit and UI test coverage
-- Automated CI/CD builds through GitHub Actions
-
----
-
-## Academic Project Information
-
-**Project Name:** AI Service Guide
-
-**Platform:** Android
-
-**Primary Language:** Kotlin
-
-**Project Type:** MCA Mini/Academic Project
-
-**Domain:** AI + Android + Citizen Services / GovTech
-
-### Core Technologies
-
-```text
-Android
-Kotlin
-Jetpack Compose
-Room Database
-Gemini API
-Kotlin Coroutines
-Voice Input
-Git
-GitHub
-```
-
-### Core Concept
-
-The project combines:
-
-```text
-Conversational AI
-        +
-Verified Local Database
-        +
-Context-Aware Conversation
-        +
-Multilingual Interaction
-        =
-Citizen Service Guidance
-```
-
----
-
-## Design Principle
-
-The most important architectural principle of this project is:
-
-> **AI interprets the user's request; verified application data determines the factual answer.**
-
-This reduces the risk of allowing a generative AI model to independently invent government-service requirements.
-
----
-
-## Project Status
-
-The application currently has:
-
-- Android application structure
-- Jetpack Compose interface
-- Room database
-- Service/document models
-- Database seeding
-- Gemini intent analysis
-- Context-aware conversation
-- Missing-document flow
-- Checklist flow
-- Kannada interaction support
-- English interaction support
-- Kannada-English mixed-language handling
-- Voice input
-- Git/GitHub version-control workflow
-
----
-
-## Author
-
-Developed as an MCA academic project.
-
----
+- Expand and maintain verified service data.
+- Add automated tests for intent-to-database workflows.
+- Improve error handling for network/API failures.
+- Add a trusted backend for Gemini requests.
+- Capture and publish a demonstration video.
+- Evaluate accessibility and usability with representative users.
 
 ## License
 
-If this project is intended for academic submission only, a license can be added later according to the project's intended distribution.
-
-If you plan to make the repository public and allow others to reuse the code, choose an appropriate open-source license before publishing.
+No license file was identified during this documentation review. Unless a license is added to the repository, reuse and redistribution permissions are not explicitly granted.
