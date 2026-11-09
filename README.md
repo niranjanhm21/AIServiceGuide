@@ -46,6 +46,7 @@ The information available to a user depends on the service records included in t
 Kannada and mixed-language examples are included in the application's manual test scenarios.
 
 ## Architecture
+For a detailed explanation of the system design, application structure, component responsibilities, and data flow, see the [Architecture Documentation](https://github.com/niranjanhm21/AIServiceGuide/blob/main/docs/ARCHITECTURE.md).
 
 ```mermaid
 flowchart TD
@@ -231,7 +232,7 @@ The following screenshots demonstrate the main income certificate preparation wo
   </tr>
 </table>
 
-See [Screenshot Documentation](docs/SCREENSHOTS.md) for more details.
+See [View Complete Screenshot Documentation](https://github.com/niranjanhm21/AIServiceGuide/blob/main/docs/SCREENSHOTS.md) for more details.
 
 ## Security and responsible use
 
