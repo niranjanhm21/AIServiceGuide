@@ -108,6 +108,16 @@ This is a conceptual view of the relationships described by the project. Refer t
 
 The repository includes the Gradle Wrapper. Use `gradlew.bat` on Windows or `./gradlew` on macOS/Linux rather than installing a separate Gradle distribution.
 
+### Before you start
+
+- Make sure Android Studio is installed and configured.
+- Ensure the Android SDK Platform 37 is available.
+- Allow Android Studio to download the Gradle and project dependencies during the first sync.
+- Obtain a Gemini API key if you want to use AI-powered intent understanding.
+- Create your own local `local.properties` file and configure the API key as explained below.
+
+**Note:** The first project sync and build may take some time because Gradle needs to download the required dependencies.
+
 ## Setup and run
 
 ### 1. Clone the repository
