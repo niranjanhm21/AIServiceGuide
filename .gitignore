@@ -24,3 +24,12 @@ local.properties
 # OS files
 .DS_Store
 Thumbs.db
+
+# Android signing files
+*.jks
+*.keystore
+
+# Environment and secret files
+.env
+.env.*
+!.env.example
